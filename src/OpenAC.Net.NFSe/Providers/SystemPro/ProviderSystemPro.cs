@@ -34,6 +34,8 @@ using OpenAC.Net.DFe.Core;
 using OpenAC.Net.DFe.Core.Serializer;
 using OpenAC.Net.NFSe.Configuracao;
 using OpenAC.Net.NFSe.Nota;
+using System.Linq;
+using System;
 using System.Text;
 using System.Xml.Linq;
 
@@ -102,6 +104,57 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
     #endregion RPS
 
     #region Services
+
+    protected override void TratarRetornoEnviarSincrono(RetornoEnviar retornoWebservice, NotaServicoCollection notas)
+    {
+        // Analisa mensagem de retorno
+        var xmlRet = XDocument.Parse(retornoWebservice.XmlRetorno);
+        MensagemErro(retornoWebservice, xmlRet.Root, "ListaMensagemRetorno");
+        MensagemErro(retornoWebservice, xmlRet.Root, "ListaMensagemRetornoLote");
+        if (retornoWebservice.Erros.Any()) return;
+
+        retornoWebservice.Data = xmlRet.Root?.ElementAnyNs("DataRecebimento")?.GetValue<DateTime>() ?? DateTime.MinValue;
+        retornoWebservice.Protocolo = xmlRet.Root?.ElementAnyNs("Protocolo")?.GetValue<string>() ?? string.Empty;
+        retornoWebservice.Sucesso = !retornoWebservice.Protocolo.IsEmpty();
+
+        if (!retornoWebservice.Sucesso) return;
+
+        var retornoLote = xmlRet.ElementAnyNs("GerarNfseResposta");
+        var listaNfse = retornoLote?.ElementAnyNs("ListaNfse");
+
+        if (listaNfse == null)
+        {
+            retornoWebservice.Erros.Add(new Evento { Codigo = "0", Descricao = "Lista de NFSe não encontrada! (ListaNfse)" });
+            return;
+        }
+
+        retornoWebservice.Sucesso = true;
+
+        foreach (var compNfse in listaNfse.ElementsAnyNs("CompNfse"))
+        {
+            var nfse = compNfse.ElementAnyNs("Nfse").ElementAnyNs("InfNfse");
+            var numeroNFSe = nfse.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty;
+            var chaveNFSe = nfse.ElementAnyNs("CodigoVerificacao")?.GetValue<string>() ?? string.Empty;
+            var dataNFSe = nfse.ElementAnyNs("DataEmissao")?.GetValue<DateTime>() ?? DateTime.Now;
+            var numeroRps = nfse?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty;
+            GravarNFSeEmDisco(compNfse.AsString(true), $"NFSe-{numeroNFSe}-{chaveNFSe}-.xml", dataNFSe);
+
+            var nota = notas.FirstOrDefault(x => x.IdentificacaoRps.Numero == numeroRps);
+            if (nota == null)
+            {
+                notas.Load(compNfse.ToString());
+            }
+            else
+            {
+                nota.IdentificacaoNFSe.Numero = numeroNFSe;
+                nota.IdentificacaoNFSe.Chave = chaveNFSe;
+                nota.IdentificacaoNFSe.DataEmissao = dataNFSe;
+                nota.XmlOriginal = compNfse.AsString();
+            }
+        }
+    }
+
+    /// <inheritdoc />
 
     protected override void PrepararConsultarNFSe(RetornoConsultarNFSe retornoWebservice)
     {
