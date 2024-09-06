@@ -63,7 +63,7 @@ internal sealed class SystemProServiceClient : NFSeSoapServiceClient, IServiceCl
         message.Append("</nfseDadosMsg>");
         message.Append("</ns2:EnviarLoteRpsSincrono>");
 
-        return Execute("", message.ToString(), "return", "EnviarLoteRpsSincronoResponse");
+        return Execute("", message.ToString(), "EnviarLoteRpsSincronoResponse", "return");
     }
 
     public string ConsultarNFSe(string cabec, string msg)
