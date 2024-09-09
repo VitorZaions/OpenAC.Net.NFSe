@@ -109,6 +109,7 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
     {
         // Analisa mensagem de retorno
         var xmlRet = XDocument.Parse(retornoWebservice.XmlRetorno);
+        MensagemErro(retornoWebservice, xmlRet.Root, "EnviarLoteRpsSincronoResposta");
         MensagemErro(retornoWebservice, xmlRet.Root, "ListaMensagemRetorno");
         MensagemErro(retornoWebservice, xmlRet.Root, "ListaMensagemRetornoLote");
         if (retornoWebservice.Erros.Any()) return;

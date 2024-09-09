@@ -31,8 +31,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
+using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 using OpenAC.Net.Core;
@@ -1533,42 +1536,54 @@ public abstract class ProviderABRASF200 : ProviderBase
     /// <param name="xmlTag"></param>
     protected virtual void MensagemErro(RetornoWebservice retornoWs, XContainer xmlRet, string xmlTag)
     {
-        var mensagens = xmlRet?.ElementAnyNs(xmlTag);
-        mensagens = mensagens?.ElementAnyNs("ListaMensagemRetorno");
-        if (mensagens != null)
+        //xmlRet.Document.
+        if (xmlRet != null)
         {
-            foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
-            {
-                var evento = new Evento
-                {
-                    Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
-                    Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
-                    Correcao = mensagem?.ElementAnyNs("Correcao")?.GetValue<string>() ?? string.Empty
-                };
+            string XMLFinal = ((System.Xml.Linq.XElement)xmlRet).Value;
 
-                retornoWs.Erros.Add(evento);
-            }
-        }
-
-        mensagens = xmlRet?.ElementAnyNs(xmlTag);
-        mensagens = mensagens?.ElementAnyNs("ListaMensagemRetornoLote");
-        if (mensagens == null) return;
-        {
-            foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
+            if (!string.IsNullOrEmpty(XMLFinal))
             {
-                var evento = new Evento
+                var decodedXmlString = HttpUtility.HtmlDecode(XMLFinal);
+                XDocument decodedXml = XDocument.Parse(decodedXmlString);
+
+                var mensagens = decodedXml?.ElementAnyNs(xmlTag);
+                mensagens = mensagens?.ElementAnyNs("ListaMensagemRetorno");
+                if (mensagens != null)
                 {
-                    Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
-                    Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
-                    IdentificacaoRps = new IdeRps()
+                    foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
                     {
-                        Numero = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty,
-                        Serie = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Serie")?.GetValue<string>() ?? string.Empty,
-                        Tipo = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Tipo")?.GetValue<TipoRps>() ?? TipoRps.RPS,
-                    }
-                };
+                        var evento = new Evento
+                        {
+                            Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
+                            Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
+                            Correcao = mensagem?.ElementAnyNs("Correcao")?.GetValue<string>() ?? string.Empty
+                        };
 
-                retornoWs.Erros.Add(evento);
+                        retornoWs.Erros.Add(evento);
+                    }
+                }
+
+                mensagens = xmlRet?.ElementAnyNs(xmlTag);
+                mensagens = mensagens?.ElementAnyNs("ListaMensagemRetornoLote");
+                if (mensagens == null) return;
+                {
+                    foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
+                    {
+                        var evento = new Evento
+                        {
+                            Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
+                            Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
+                            IdentificacaoRps = new IdeRps()
+                            {
+                                Numero = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty,
+                                Serie = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Serie")?.GetValue<string>() ?? string.Empty,
+                                Tipo = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Tipo")?.GetValue<TipoRps>() ?? TipoRps.RPS,
+                            }
+                        };
+
+                        retornoWs.Erros.Add(evento);
+                    }
+                }
             }
         }
     }

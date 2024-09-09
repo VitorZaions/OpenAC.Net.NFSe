@@ -253,6 +253,7 @@
 	<ItemGroup>
 		<None Remove="Resources\Municipios.nfse" />
 		<EmbeddedResource Include="Resources\Municipios.nfse" />
+		<Reference Include="System.Web" />
 		
 		<None Update="Schemas\Abaco\**\*.*">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
