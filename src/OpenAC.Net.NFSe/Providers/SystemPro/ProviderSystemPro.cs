@@ -38,6 +38,7 @@ using System.Linq;
 using System;
 using System.Text;
 using System.Xml.Linq;
+using System.Web;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -114,18 +115,27 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
         MensagemErro(retornoWebservice, xmlRet.Root, "ListaMensagemRetornoLote");
         if (retornoWebservice.Erros.Any()) return;
 
-        retornoWebservice.Data = xmlRet.Root?.ElementAnyNs("DataRecebimento")?.GetValue<DateTime>() ?? DateTime.MinValue;
-        retornoWebservice.Protocolo = xmlRet.Root?.ElementAnyNs("Protocolo")?.GetValue<string>() ?? string.Empty;
+        // Primeiro, extraia o conteúdo do elemento <return>
+        var returnElement = xmlRet.Root?.Value;
+
+        // Decodifique o conteúdo XML escapado
+        var decodedXml = System.Net.WebUtility.HtmlDecode(returnElement);
+
+        // Parseie o XML decodificado
+        var innerXml = XDocument.Parse(decodedXml);
+        
+        retornoWebservice.Data = innerXml.Root?.ElementAnyNs("DataRecebimento")?.GetValue<DateTime>() ?? DateTime.MinValue;
+        retornoWebservice.Protocolo = innerXml.Root?.ElementAnyNs("ListaNfse")?.ElementAnyNs("CompNfse")?.ElementAnyNs("Nfse")?.ElementAnyNs("InfNfse")?.ElementAnyNs("CodigoVerificacao")?.GetValue<string>() ?? string.Empty;
         retornoWebservice.Sucesso = !retornoWebservice.Protocolo.IsEmpty();
 
         if (!retornoWebservice.Sucesso) return;
 
-        var retornoLote = xmlRet.ElementAnyNs("GerarNfseResposta");
-        var listaNfse = retornoLote?.ElementAnyNs("ListaNfse");
+        var listaNfse = innerXml.Root?.ElementAnyNs("ListaNfse");
 
         if (listaNfse == null)
         {
             retornoWebservice.Erros.Add(new Evento { Codigo = "0", Descricao = "Lista de NFSe não encontrada! (ListaNfse)" });
+            retornoWebservice.Sucesso = false;
             return;
         }
 
@@ -137,7 +147,7 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
             var numeroNFSe = nfse.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty;
             var chaveNFSe = nfse.ElementAnyNs("CodigoVerificacao")?.GetValue<string>() ?? string.Empty;
             var dataNFSe = nfse.ElementAnyNs("DataEmissao")?.GetValue<DateTime>() ?? DateTime.Now;
-            var numeroRps = nfse?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty;
+            var numeroRps = nfse?.ElementAnyNs("DeclaracaoPrestacaoServico")?.ElementAnyNs("InfDeclaracaoPrestacaoServico")?.ElementAnyNs("Rps")?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty;
             GravarNFSeEmDisco(compNfse.AsString(true), $"NFSe-{numeroNFSe}-{chaveNFSe}-.xml", dataNFSe);
 
             var nota = notas.FirstOrDefault(x => x.IdentificacaoRps.Numero == numeroRps);
@@ -151,6 +161,59 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
                 nota.IdentificacaoNFSe.Chave = chaveNFSe;
                 nota.IdentificacaoNFSe.DataEmissao = dataNFSe;
                 nota.XmlOriginal = compNfse.AsString();
+            }
+        }
+    }
+
+    protected override void MensagemErro(RetornoWebservice retornoWs, XContainer xmlRet, string xmlTag)
+    {
+        if (xmlRet != null)
+        {
+            string XMLFinal = ((System.Xml.Linq.XElement)xmlRet).Value;
+
+            if (!string.IsNullOrEmpty(XMLFinal))
+            {
+                var decodedXmlString = HttpUtility.HtmlDecode(XMLFinal);
+                XDocument decodedXml = XDocument.Parse(decodedXmlString);
+
+                var mensagens = decodedXml?.ElementAnyNs(xmlTag);
+                mensagens = mensagens?.ElementAnyNs("ListaMensagemRetorno");
+                if (mensagens != null)
+                {
+                    foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
+                    {
+                        var evento = new Evento
+                        {
+                            Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
+                            Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
+                            Correcao = mensagem?.ElementAnyNs("Correcao")?.GetValue<string>() ?? string.Empty
+                        };
+
+                        retornoWs.Erros.Add(evento);
+                    }
+                }
+
+                mensagens = xmlRet?.ElementAnyNs(xmlTag);
+                mensagens = mensagens?.ElementAnyNs("ListaMensagemRetornoLote");
+                if (mensagens == null) return;
+                {
+                    foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
+                    {
+                        var evento = new Evento
+                        {
+                            Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
+                            Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
+                            IdentificacaoRps = new IdeRps()
+                            {
+                                Numero = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty,
+                                Serie = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Serie")?.GetValue<string>() ?? string.Empty,
+                                Tipo = mensagem?.ElementAnyNs("IdentificacaoRps")?.ElementAnyNs("Tipo")?.GetValue<TipoRps>() ?? TipoRps.RPS,
+                            }
+                        };
+
+                        retornoWs.Erros.Add(evento);
+                    }
+                }
             }
         }
     }
