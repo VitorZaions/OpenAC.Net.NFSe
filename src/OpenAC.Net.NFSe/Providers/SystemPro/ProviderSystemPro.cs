@@ -42,6 +42,7 @@ using OpenAC.Net.NFSe.Commom;
 using OpenAC.Net.NFSe.Commom.Interface;
 using OpenAC.Net.NFSe.Commom.Model;
 using OpenAC.Net.NFSe.Commom.Types;
+using System.Web;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -137,7 +138,7 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
 
         if (listaNfse == null)
         {
-            retornoWebservice.Erros.Add(new Evento { Codigo = "0", Descricao = "Lista de NFSe n�o encontrada! (ListaNfse)" });
+            retornoWebservice.Erros.Add(new EventoRetorno { Codigo = "0", Descricao = "Lista de NFSe n�o encontrada! (ListaNfse)" });
             retornoWebservice.Sucesso = false;
             return;
         }
@@ -185,7 +186,7 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
                 {
                     foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
                     {
-                        var evento = new Evento
+                        var evento = new EventoRetorno
                         {
                             Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
                             Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
@@ -202,7 +203,7 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
                 {
                     foreach (var mensagem in mensagens.ElementsAnyNs("MensagemRetorno"))
                     {
-                        var evento = new Evento
+                        var evento = new EventoRetorno
                         {
                             Codigo = mensagem?.ElementAnyNs("Codigo")?.GetValue<string>() ?? string.Empty,
                             Descricao = mensagem?.ElementAnyNs("Mensagem")?.GetValue<string>() ?? string.Empty,
