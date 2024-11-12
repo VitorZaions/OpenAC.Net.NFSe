@@ -8,7 +8,7 @@
 // ***********************************************************************
 // <copyright file="OpenMunicipioNFSe.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -29,14 +29,14 @@
 // <summary></summary>
 // ***********************************************************************
 
-using System;
 using System.Collections.Generic;
 using OpenAC.Net.DFe.Core.Attributes;
 using OpenAC.Net.DFe.Core.Common;
 using OpenAC.Net.DFe.Core.Document;
 using OpenAC.Net.DFe.Core.Serializer;
+using OpenAC.Net.NFSe.Providers;
 
-namespace OpenAC.Net.NFSe.Providers;
+namespace OpenAC.Net.NFSe.Commom;
 
 [DFeRoot("Municipio", Namespace = "https://www.openac.net.br/")]
 public sealed class OpenMunicipioNFSe : DFeDocument<OpenMunicipioNFSe>
@@ -77,6 +77,8 @@ public sealed class OpenMunicipioNFSe : DFeDocument<OpenMunicipioNFSe>
             { TipoUrl.SubstituirNFSe, string.Empty },
             { TipoUrl.Autenticacao, string.Empty }
         };
+
+        Parametros = new Dictionary<string, string?>();
     }
 
     #endregion Constructors
@@ -91,26 +93,11 @@ public sealed class OpenMunicipioNFSe : DFeDocument<OpenMunicipioNFSe>
     public int Codigo { get; set; }
 
     /// <summary>
-    /// Define ou retorna o codigo Siafi do municipio
-    /// Obrigatorio para municipios com provedor DSF.
-    /// </summary>
-    /// <value>The codigo siafi.</value>
-    [DFeElement(TipoCampo.Int, "CodigoSiafi")]
-    public int CodigoSiafi { get; set; }
-
-    /// <summary>
-    /// Define ou retorna o identificador do município no provedor Equiplano
-    /// </summary>
-    /// <value>The Id Entidade.</value>
-    [DFeElement(TipoCampo.Int, "IdEntidade")]
-    public int IdEntidade { get; set; }
-
-    /// <summary>
     /// Define ou retorna o nome do municipio
     /// </summary>
     /// <value>The nome.</value>
     [DFeElement(TipoCampo.Str, "Nome")]
-    public string Nome { get; set; }
+    public string Nome { get; set; } = "";
 
     /// <summary>
     /// Define ou retorna a UF do municipio.
@@ -132,30 +119,28 @@ public sealed class OpenMunicipioNFSe : DFeDocument<OpenMunicipioNFSe>
     /// <value>The provedor.</value>
     [DFeElement(TipoCampo.Enum, "Versao")]
     public VersaoNFSe Versao { get; set; }
-    
-    /// <summary>
-    /// Define ou retorna o CNPJ da prefeitura
-    /// </summary>
-    /// <value>The Prefeitura Cnpj.</value>
-    [DFeElement(TipoCampo.Str, "CnpjPrefeitura")]
-    public string CnpjPrefeitura { get; set; }
+
+    [DFeDictionary("Parametros")]
+    [DFeDictionaryKey(TipoCampo.Str, "Id")]
+    [DFeDictionaryValue(TipoCampo.Str, "Parametro")]
+    public Dictionary<string, string?> Parametros { get; set; }
 
     /// <summary>
     /// Lista de url de homologação dos serviços.
     /// </summary>
     /// <value>The URL homologacao.</value>
-    [DFeDictionary("UrlHomologacao", ItemName = "Item")]
-    [DFeDictionaryKey(TipoCampo.Enum, "TipoUrl", AsAttribute = false)]
+    [DFeDictionary("UrlHomologacao", "Item")]
     [DFeDictionaryValue(TipoCampo.Str, "Url")]
+    [DFeDictionaryKey(TipoCampo.Enum, "TipoUrl", false)]
     public Dictionary<TipoUrl, string> UrlHomologacao { get; set; }
 
     /// <summary>
     /// Lista de url de produção dos serviços.
     /// </summary>
     /// <value>The URL producao.</value>
-    [DFeDictionary("UrlProducao", ItemName = "Item")]
-    [DFeDictionaryKey(TipoCampo.Enum, "TipoUrl", AsAttribute = false)]
+    [DFeDictionary("UrlProducao", "Item")]
     [DFeDictionaryValue(TipoCampo.Str, "Url")]
+    [DFeDictionaryKey(TipoCampo.Enum, "TipoUrl", false)]
     public Dictionary<TipoUrl, string> UrlProducao { get; set; }
 
     #endregion Propriedades

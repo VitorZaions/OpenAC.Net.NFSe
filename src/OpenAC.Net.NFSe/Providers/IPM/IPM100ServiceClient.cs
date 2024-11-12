@@ -9,7 +9,7 @@
 // ***********************************************************************
 // <copyright file="IPM2ServiceClient.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 // ***********************************************************************
 
 using System;
+using OpenAC.Net.NFSe.Commom;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -41,6 +42,7 @@ public class IPM100ServiceClient : NFSeMultiPartClient, IServiceClient
     public IPM100ServiceClient(ProviderBase provider, TipoUrl tipoUrl) : base(provider, tipoUrl)
     {
         UseFormAuth = true;
+        FileNameForm = "f1";
     }
 
     #endregion Constructors
@@ -50,6 +52,8 @@ public class IPM100ServiceClient : NFSeMultiPartClient, IServiceClient
     public string EnviarSincrono(string cabec, string msg) => Upload(msg);
 
     public string ConsultarLoteRps(string cabec, string msg) => Upload(msg);
+    
+    public string ConsultarNFSe(string cabec, string msg) => Upload(msg);
 
     public string ConsultarNFSeRps(string cabec, string msg) => throw new NotImplementedException();
 
@@ -60,8 +64,6 @@ public class IPM100ServiceClient : NFSeMultiPartClient, IServiceClient
     public string ConsultarSituacao(string cabec, string msg) => throw new NotImplementedException();
 
     public string ConsultarSequencialRps(string cabec, string msg) => throw new NotImplementedException();
-
-    public string ConsultarNFSe(string cabec, string msg) => Upload(msg);
 
     public string CancelarNFSeLote(string cabec, string msg) => throw new NotImplementedException();
 

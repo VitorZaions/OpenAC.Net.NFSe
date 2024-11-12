@@ -8,7 +8,7 @@
 // ***********************************************************************
 // <copyright file="ProviderManager.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@ using System.Reflection;
 using OpenAC.Net.Core;
 using OpenAC.Net.Core.Extensions;
 using OpenAC.Net.DFe.Core.Common;
+using OpenAC.Net.NFSe.Commom;
 using OpenAC.Net.NFSe.Configuracao;
 
 namespace OpenAC.Net.NFSe.Providers;
@@ -69,7 +70,7 @@ public static class ProviderManager
             {NFSeProvider.Fisco, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve203, typeof(ProviderFisco)}}},
             {NFSeProvider.FissLex, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderFissLex)}}},
             {NFSeProvider.Ginfes, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderGinfes)}}},
-            {NFSeProvider.IPM, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderIPM100)}, {VersaoNFSe.ve101, typeof(ProviderIPM101)}}},
+            {NFSeProvider.IPM, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderIPM100)}, {VersaoNFSe.ve101, typeof(ProviderIpm101)}}},
             {NFSeProvider.ISSCuritiba, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderISSCuritiba)}}},
             {NFSeProvider.ISSDSF, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderISSDSF)}}},
             {NFSeProvider.ISSe, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve201, typeof(ProviderISSe)}}},
@@ -133,7 +134,7 @@ public static class ProviderManager
     /// <param name="path">Caminho para salvar o arquivo</param>
     public static void Save(string path = "Municipios.nfse")
     {
-        Guard.Against<ArgumentNullException>(path == null, "Path invalido.");
+        if(path == null) throw new ArgumentNullException(nameof(path));
 
         if (File.Exists(path)) File.Delete(path);
 
@@ -167,7 +168,7 @@ public static class ProviderManager
     /// <param name="clean">if set to <c>true</c> [clean].</param>
     public static void Load(string path = "", bool clean = true)
     {
-        byte[] buffer = null;
+        byte[]? buffer = null;
         if (path.IsEmpty())
         {
             var assembly = Assembly.GetExecutingAssembly();
@@ -175,7 +176,7 @@ public static class ProviderManager
             if (resourceStream != null)
             {
                 buffer = new byte[resourceStream.Length];
-                resourceStream.Read(buffer, 0, buffer.Length);
+                _ = resourceStream.Read(buffer, 0, buffer.Length);
             }
         }
         else if (File.Exists(path))
@@ -183,8 +184,7 @@ public static class ProviderManager
             buffer = File.ReadAllBytes(path);
         }
 
-        Guard.Against<ArgumentException>(buffer == null, "Arquivo de cidades não encontrado");
-
+        if(buffer == null) throw new ArgumentException("Arquivo de cidades não encontrado");
         using var stream = new MemoryStream(buffer);
         Load(stream, clean);
     }
@@ -196,7 +196,7 @@ public static class ProviderManager
     /// <param name="clean">if set to <c>true</c> [clean].</param>
     public static void Load(Stream stream, bool clean = true)
     {
-        Guard.Against<ArgumentException>(stream == null, "Arquivo de cidades não encontrado");
+        if(stream == null) throw new ArgumentException("Arquivo de cidades não encontrado");
 
         var municipiosNFSe = MunicipiosNFSe.Load(stream);
         if (clean) Municipios.Clear();
@@ -211,12 +211,12 @@ public static class ProviderManager
     public static ProviderBase GetProvider(ConfigNFSe config)
     {
         var municipio = Municipios.SingleOrDefault(x => x.Codigo == config.WebServices.CodigoMunicipio);
-        Guard.Against<OpenException>(municipio == null, "Provedor para esta cidade não implementado ou não especificado!");
+        if(municipio == null) throw new OpenException("Provedor para esta cidade não implementado ou não especificado!");
 
         // ReSharper disable once PossibleNullReferenceException
         var providerType = Providers[municipio.Provedor][municipio.Versao];
-        Guard.Against<OpenException>(providerType == null, "Provedor não encontrado!");
-        Guard.Against<OpenException>(!CheckBaseType(providerType), "Classe base do provedor incorreta!");
+        if(providerType == null) throw new OpenException("Provedor não encontrado!");
+        if(!CheckBaseType(providerType)) throw new OpenException("Classe base do provedor incorreta!");
 
         // ReSharper disable once AssignNullToNotNullAttribute
         return (ProviderBase)Activator.CreateInstance(providerType, config, municipio);

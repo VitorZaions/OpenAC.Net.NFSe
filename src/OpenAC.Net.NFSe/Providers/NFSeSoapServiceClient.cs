@@ -8,7 +8,7 @@
 // ***********************************************************************
 // <copyright file="NFSeSoapServiceClient.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using OpenAC.Net.NFSe.Commom;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -58,10 +59,11 @@ public abstract class NFSeSoapServiceClient : NFSeHttpServiceClient
     #region Constructors
 
     /// <summary>
-    ///
+    /// 
     /// </summary>
     /// <param name="provider"></param>
     /// <param name="tipoUrl"></param>
+    /// <param name="message"></param>
     protected NFSeSoapServiceClient(ProviderBase provider, TipoUrl tipoUrl, SoapVersion message) : base(provider, tipoUrl, provider.Certificado)
     {
         Guard.Against<ArgumentException>(!Enum.IsDefined(typeof(SoapVersion), message), "Versão Soap não definida.");
@@ -70,13 +72,14 @@ public abstract class NFSeSoapServiceClient : NFSeHttpServiceClient
     }
 
     /// <summary>
-    ///
+    /// 
     /// </summary>
     /// <param name="provider"></param>
     /// <param name="tipoUrl"></param>
     /// <param name="certificado"></param>
+    /// <param name="message"></param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    protected NFSeSoapServiceClient(ProviderBase provider, TipoUrl tipoUrl, X509Certificate2 certificado, SoapVersion message) : base(provider, tipoUrl, certificado)
+    protected NFSeSoapServiceClient(ProviderBase provider, TipoUrl tipoUrl, X509Certificate2? certificado, SoapVersion message) : base(provider, tipoUrl, certificado)
     {
         Guard.Against<ArgumentException>(!Enum.IsDefined(typeof(SoapVersion), message), "Versão Soap não definida.");
 

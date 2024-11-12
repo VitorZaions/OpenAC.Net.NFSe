@@ -8,7 +8,7 @@
 // ***********************************************************************
 // <copyright file="NFSeHttpServiceClient.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,7 @@ using OpenAC.Net.DFe.Core;
 using OpenAC.Net.DFe.Core.Attributes;
 using OpenAC.Net.DFe.Core.Common;
 using OpenAC.Net.DFe.Core.Extensions;
+using OpenAC.Net.NFSe.Commom;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -54,6 +55,7 @@ public abstract class NFSeHttpServiceClient : IDisposable
     {
         [DFeEnum("Basic")]
         Basic,
+        
         [DFeEnum("Bearer")]
         Bearer,
     }
@@ -78,10 +80,10 @@ public abstract class NFSeHttpServiceClient : IDisposable
     /// <param name="tipoUrl"></param>
     /// <param name="certificado"></param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    protected NFSeHttpServiceClient(ProviderBase provider, TipoUrl tipoUrl, X509Certificate2 certificado)
+    protected NFSeHttpServiceClient(ProviderBase provider, TipoUrl tipoUrl, X509Certificate2? certificado)
     {
         Certificado = certificado;
-        Url = provider.GetUrl(tipoUrl)?.Replace("?wsdl", "");
+        Url = provider.GetUrl(tipoUrl).Replace("?wsdl", "") ?? throw new OpenDFeException("Url não encontrada.");
         Provider = provider;
 
         switch (tipoUrl)
@@ -131,6 +133,15 @@ public abstract class NFSeHttpServiceClient : IDisposable
                 PrefixoResposta = "sub-nfse";
                 break;
 
+            case TipoUrl.CancelarNFSeLote:
+                PrefixoEnvio = "canc-lote-nfse";
+                PrefixoResposta = "canc-lote-nfse";
+                break;
+            case TipoUrl.Autenticacao:
+                PrefixoEnvio = "aut-nfse";
+                PrefixoResposta = "aut-nfse";
+                break;
+            
             default:
                 throw new ArgumentOutOfRangeException(nameof(tipoUrl), tipoUrl, null);
         }
@@ -146,9 +157,9 @@ public abstract class NFSeHttpServiceClient : IDisposable
 
     public string PrefixoResposta { get; }
 
-    public string EnvelopeEnvio { get; protected set; }
+    public string EnvelopeEnvio { get; protected set; } = "";
 
-    public string EnvelopeRetorno { get; protected set; }
+    public string EnvelopeRetorno { get; protected set; } = "";
 
     public ProviderBase Provider { get; set; }
 
@@ -156,7 +167,7 @@ public abstract class NFSeHttpServiceClient : IDisposable
 
     protected string Url { get; set; }
 
-    protected X509Certificate2 Certificado { get; set; }
+    protected X509Certificate2? Certificado { get; set; }
 
     protected bool IsDisposed { get; private set; }
 
@@ -168,11 +179,21 @@ public abstract class NFSeHttpServiceClient : IDisposable
 
     #region Methods
 
-    protected void Execute(HttpContent content, HttpMethod method)
+    protected void ExecuteGet()
+    {
+        Execute(null, HttpMethod.Get);
+    }
+    
+    protected void ExecutePost(HttpContent content)
+    {
+        Execute(content, HttpMethod.Post);
+    }
+
+    protected void Execute(HttpContent? content, HttpMethod method)
     {
         try
         {
-            Guard.Against<ArgumentNullException>(content == null && method == HttpMethod.Post, nameof(content));
+            if(content == null && method == HttpMethod.Post) throw new ArgumentNullException(nameof(content));
 
             if (!EnvelopeEnvio.IsEmpty())
                 GravarEnvio(EnvelopeEnvio, $"{DateTime.Now:yyyyMMddssfff}_{PrefixoEnvio}_envio.xml");
@@ -201,7 +222,7 @@ public abstract class NFSeHttpServiceClient : IDisposable
             var request = new HttpRequestMessage(method, Url);
 
             var assemblyName = GetType().Assembly.GetName();
-            var productValue = new ProductInfoHeaderValue(assemblyName.Name, assemblyName.Version.ToString());
+            var productValue = new ProductInfoHeaderValue(assemblyName.Name!, assemblyName.Version!.ToString());
             var commentValue = new ProductInfoHeaderValue("(+https://github.com/OpenAC-Net/OpenAC.Net.NFSe)");
 
             request.Headers.UserAgent.Add(productValue);

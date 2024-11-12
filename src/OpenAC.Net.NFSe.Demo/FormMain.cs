@@ -12,7 +12,9 @@ using OpenAC.Net.Core.Extensions;
 using OpenAC.Net.Core.Logging;
 using OpenAC.Net.DFe.Core.Common;
 using OpenAC.Net.DFe.Core.Extensions;
+using OpenAC.Net.NFSe.Commom;
 using OpenAC.Net.NFSe.DANFSe.FastReport.OpenSource;
+using OpenAC.Net.NFSe.DANFSe.QuestPdf;
 using OpenAC.Net.NFSe.Nota;
 using OpenAC.Net.NFSe.Providers;
 
@@ -345,10 +347,6 @@ public partial class FormMain : Form, IOpenLog
                 e.Value = municipio.Codigo.ToString();
                 return;
 
-            case "dgcCodigoSiafi":
-                e.Value = municipio.CodigoSiafi.ToString();
-                return;
-
             case "dgcProvedor":
                 e.Value = municipio.Provedor.GetDescription();
                 return;
@@ -423,7 +421,6 @@ public partial class FormMain : Form, IOpenLog
         if (municipio == null) return;
 
         txtCodCidade.Text = municipio.Codigo.ToString();
-        txtCodSiafi.Text = municipio.CodigoSiafi.ToString();
         txtProvedor.Text = municipio.Provedor.ToString();
         txtVersao.Text = municipio.Versao.GetDFeValue();
 
@@ -588,9 +585,10 @@ public partial class FormMain : Form, IOpenLog
 
         nfSe.Servico.ItemListaServico = itemListaServico;
         nfSe.Servico.CodigoTributacaoMunicipio = CodigoTributacaoMunicipio;
-        nfSe.Servico.Discriminacao = "MANUTENCAO TÉCNICA / VOCÊ PAGOU APROXIMADAMENTE R$ 41,15 DE TRIBUTOS FEDERAIS, R$ 8,26 DE TRIBUTOS MUNICIPAIS, R$ 256,57 PELOS PRODUTOS/SERVICOS, FONTE: IBPT.";
-        nfSe.Servico.CodigoMunicipio = municipio.Provedor == NFSeProvider.ISSDSF ? municipio.CodigoSiafi : municipio.Codigo;
+        nfSe.Servico.Discriminacao = "MANUTENCAO TÉCNICA";
+        nfSe.Servico.CodigoMunicipio = municipio.Codigo;
         nfSe.Servico.Municipio = municipio.Nome;
+        nfSe.OutrasInformacoes = "VOCÊ PAGOU APROXIMADAMENTE R$ 41,15 DE TRIBUTOS FEDERAIS, R$ 8,26 DE TRIBUTOS MUNICIPAIS, R$ 256,57 PELOS PRODUTOS/SERVICOS, FONTE: IBPT.";
         if (municipio.Provedor.IsIn(NFSeProvider.SiapNet))
         {
             nfSe.Servico.ResponsavelRetencao = ResponsavelRetencao.Prestador;
@@ -617,7 +615,7 @@ public partial class FormMain : Form, IOpenLog
 
         if (municipio.Provedor == NFSeProvider.ISSDSF)
         {
-            var servico = nfSe.Servico.ItensServico.AddNew();
+            var servico = nfSe.Servico.ItemsServico.AddNew();
             servico.Descricao = "Teste";
             servico.Quantidade = 1M;
             servico.ValorTotal = 100;

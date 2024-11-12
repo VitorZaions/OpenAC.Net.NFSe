@@ -34,7 +34,9 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using OpenAC.Net.Core.Extensions;
+using OpenAC.Net.DFe.Core;
 using OpenAC.Net.DFe.Core.Serializer;
+using OpenAC.Net.NFSe.Commom;
 using OpenAC.Net.NFSe.Configuracao;
 using OpenAC.Net.NFSe.Nota;
 
@@ -47,25 +49,35 @@ internal class ProviderAgili : ProviderABRASF
     public ProviderAgili(ConfigNFSe config, OpenMunicipioNFSe municipio) : base(config, municipio)
     {
         Name = "Agili";
+        if(!Municipio.Parametros.TryGetValue(nameof(UnidadeGestora), out var value) || value.IsEmpty())
+            throw new OpenDFeException($"Este provedor precisa que seja informado o parâmetro {nameof(UnidadeGestora)}.");
+
+        UnidadeGestora = value ?? "";
     }
 
     #endregion Constructors
 
+    #region Properties
+
+    public string UnidadeGestora { get; }
+
+    #endregion Properties
+    
     #region Methods
 
     protected virtual XElement WriteIdentificacaoPrestador(NotaServico nota)
     {
         var identificacaoPrestador = new XElement("IdentificacaoPrestador");
-        identificacaoPrestador.AddChild(AdicionarTag(TipoCampo.Str, "", "ChaveDigital", 1, 32, Ocorrencia.Obrigatoria,
+        identificacaoPrestador.AddChild(AddTag(TipoCampo.Str, "", "ChaveDigital", 1, 32, Ocorrencia.Obrigatoria,
             Configuracoes.WebServices.ChavePrivada));
 
         var cpfCnpj = new XElement("CpfCnpj");
 
-        cpfCnpj.AddChild(AdicionarTagCNPJCPF("", "Cpf", "Cnpj", Configuracoes.PrestadorPadrao.CpfCnpj));
+        cpfCnpj.AddChild(AdicionarTagCNPJCPF("", "Cpf", "Cnpj", nota.Prestador.CpfCnpj));
 
         identificacaoPrestador.Add(cpfCnpj);
-        identificacaoPrestador.AddChild(AdicionarTag(TipoCampo.Str, "", "InscricaoMunicipal", 1, 32,
-            Ocorrencia.Obrigatoria, Configuracoes.PrestadorPadrao.InscricaoMunicipal));
+        identificacaoPrestador.AddChild(AddTag(TipoCampo.Str, "", "InscricaoMunicipal", 1, 32,
+            Ocorrencia.Obrigatoria, nota.Prestador.InscricaoMunicipal));
 
         return identificacaoPrestador;
     }
@@ -93,11 +105,11 @@ internal class ProviderAgili : ProviderABRASF
         }
 
         var ideRps = new XElement("IdentificacaoRps");
-        ideRps.AddChild(AdicionarTag(TipoCampo.Int, "", "Numero", 1, 15, Ocorrencia.Obrigatoria,
+        ideRps.AddChild(AddTag(TipoCampo.Int, "", "Numero", 1, 15, Ocorrencia.Obrigatoria,
             nota.IdentificacaoRps.Numero));
-        ideRps.AddChild(AdicionarTag(TipoCampo.Int, "", "Serie", 1, 5, Ocorrencia.Obrigatoria,
+        ideRps.AddChild(AddTag(TipoCampo.Int, "", "Serie", 1, 5, Ocorrencia.Obrigatoria,
             nota.IdentificacaoRps.Serie));
-        ideRps.AddChild(AdicionarTag(TipoCampo.Int, "", "Tipo", 1, 1, Ocorrencia.Obrigatoria, tipoRps));
+        ideRps.AddChild(AddTag(TipoCampo.Int, "", "Tipo", 1, 1, Ocorrencia.Obrigatoria, tipoRps));
 
         return ideRps;
     }
@@ -114,12 +126,12 @@ internal class ProviderAgili : ProviderABRASF
 
         cpfCnpjTomador.AddChild(AdicionarTagCNPJCPF("", "Cpf", "Cnpj", nota.Tomador.CpfCnpj));
 
-        ideTomador.AddChild(AdicionarTag(TipoCampo.Str, "", "InscricaoMunicipal", 1, 15, Ocorrencia.NaoObrigatoria,
+        ideTomador.AddChild(AddTag(TipoCampo.Str, "", "InscricaoMunicipal", 1, 15, Ocorrencia.NaoObrigatoria,
             nota.Tomador.InscricaoMunicipal));
 
-        tomador.AddChild(AdicionarTag(TipoCampo.Str, "", "RazaoSocial", 1, 115, Ocorrencia.NaoObrigatoria,
+        tomador.AddChild(AddTag(TipoCampo.Str, "", "RazaoSocial", 1, 115, Ocorrencia.NaoObrigatoria,
             nota.Tomador.RazaoSocial));
-        tomador.AddChild(AdicionarTag(TipoCampo.Int, "", "LocalEndereco", 1, 1, Ocorrencia.Obrigatoria, 1));
+        tomador.AddChild(AddTag(TipoCampo.Int, "", "LocalEndereco", 1, 1, Ocorrencia.Obrigatoria, 1));
 
         if (!nota.Tomador.Endereco.Logradouro.IsEmpty() || !nota.Tomador.Endereco.Numero.IsEmpty() ||
             !nota.Tomador.Endereco.Complemento.IsEmpty() || !nota.Tomador.Endereco.Bairro.IsEmpty() ||
@@ -129,36 +141,36 @@ internal class ProviderAgili : ProviderABRASF
             var endereco = new XElement("Endereco");
             tomador.Add(endereco);
 
-            endereco.AddChild(AdicionarTag(TipoCampo.Str, "", "TipoLogradouro", 1, 120, Ocorrencia.NaoObrigatoria,
+            endereco.AddChild(AddTag(TipoCampo.Str, "", "TipoLogradouro", 1, 120, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.TipoLogradouro));
-            endereco.AddChild(AdicionarTag(TipoCampo.Str, "", "Logradouro", 1, 125, Ocorrencia.NaoObrigatoria,
+            endereco.AddChild(AddTag(TipoCampo.Str, "", "Logradouro", 1, 125, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.Logradouro));
-            endereco.AddChild(AdicionarTag(TipoCampo.Str, "", "Numero", 1, 10, Ocorrencia.NaoObrigatoria,
+            endereco.AddChild(AddTag(TipoCampo.Str, "", "Numero", 1, 10, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.Numero));
-            endereco.AddChild(AdicionarTag(TipoCampo.Str, "", "Complemento", 1, 60, Ocorrencia.NaoObrigatoria,
+            endereco.AddChild(AddTag(TipoCampo.Str, "", "Complemento", 1, 60, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.Complemento));
-            endereco.AddChild(AdicionarTag(TipoCampo.Str, "", "Bairro", 1, 60, Ocorrencia.NaoObrigatoria,
+            endereco.AddChild(AddTag(TipoCampo.Str, "", "Bairro", 1, 60, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.Bairro));
 
             var municipio = new XElement("Municipio");
-            municipio.AddChild(AdicionarTag(TipoCampo.Int, "", "CodigoMunicipioIBGE", 7, 7, Ocorrencia.MaiorQueZero,
+            municipio.AddChild(AddTag(TipoCampo.Int, "", "CodigoMunicipioIBGE", 7, 7, Ocorrencia.MaiorQueZero,
                 nota.Tomador.Endereco.CodigoMunicipio));
-            municipio.AddChild(AdicionarTag(TipoCampo.Str, "", "Descricao", 1, 300, Ocorrencia.Obrigatoria,
+            municipio.AddChild(AddTag(TipoCampo.Str, "", "Descricao", 1, 300, Ocorrencia.Obrigatoria,
                 nota.Tomador.Endereco.Municipio));
-            municipio.AddChild(AdicionarTag(TipoCampo.Str, "", "Uf", 2, 2, Ocorrencia.NaoObrigatoria,
+            municipio.AddChild(AddTag(TipoCampo.Str, "", "Uf", 2, 2, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.Uf));
 
             endereco.AddChild(municipio);
 
             var pais = new XElement("Pais");
-            pais.AddChild(AdicionarTag(TipoCampo.Int, "", "CodigoPaisBacen", 1, 4, Ocorrencia.MaiorQueZero,
+            pais.AddChild(AddTag(TipoCampo.Int, "", "CodigoPaisBacen", 1, 4, Ocorrencia.MaiorQueZero,
                 nota.Tomador.Endereco.CodigoPais));
-            pais.AddChild(AdicionarTag(TipoCampo.Str, "", "Descricao", 1, 4, Ocorrencia.MaiorQueZero,
+            pais.AddChild(AddTag(TipoCampo.Str, "", "Descricao", 1, 4, Ocorrencia.MaiorQueZero,
                 nota.Tomador.Endereco.Pais));
 
             endereco.AddChild(pais);
 
-            endereco.AddChild(AdicionarTag(TipoCampo.StrNumber, "", "Cep", 8, 8, Ocorrencia.NaoObrigatoria,
+            endereco.AddChild(AddTag(TipoCampo.StrNumber, "", "Cep", 8, 8, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.Endereco.Cep));
         }
 
@@ -168,9 +180,9 @@ internal class ProviderAgili : ProviderABRASF
             var contato = new XElement("Contato");
             tomador.Add(contato);
 
-            contato.AddChild(AdicionarTag(TipoCampo.StrNumber, "", "Telefone", 1, 11, Ocorrencia.NaoObrigatoria,
+            contato.AddChild(AddTag(TipoCampo.StrNumber, "", "Telefone", 1, 11, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.DadosContato.DDD + nota.Tomador.DadosContato.Telefone));
-            contato.AddChild(AdicionarTag(TipoCampo.Str, "", "Email", 1, 80, Ocorrencia.NaoObrigatoria,
+            contato.AddChild(AddTag(TipoCampo.Str, "", "Email", 1, 80, Ocorrencia.NaoObrigatoria,
                 nota.Tomador.DadosContato.Email));
         }
 
@@ -191,11 +203,11 @@ internal class ProviderAgili : ProviderABRASF
 
         cpfCnpj.AddChild(AdicionarTagCNPJCPF("", "Cpf", "Cnpj", nota.Intermediario.CpfCnpj));
 
-        ideIntermediario.AddChild(AdicionarTag(TipoCampo.Str, "", "InscricaoMunicipal", 1, 15,
+        ideIntermediario.AddChild(AddTag(TipoCampo.Str, "", "InscricaoMunicipal", 1, 15,
             Ocorrencia.NaoObrigatoria,
             nota.Intermediario.InscricaoMunicipal));
 
-        intermediario.AddChild(AdicionarTag(TipoCampo.Str, "", "RazaoSocial", 1, 115, Ocorrencia.NaoObrigatoria,
+        intermediario.AddChild(AddTag(TipoCampo.Str, "", "RazaoSocial", 1, 115, Ocorrencia.NaoObrigatoria,
             nota.Intermediario.RazaoSocial));
 
         return intermediario;
@@ -206,12 +218,12 @@ internal class ProviderAgili : ProviderABRASF
         var listaServico = new XElement("ListaServico");
         var dadosServico = new XElement("DadosServico");
 
-        dadosServico.AddChild(AdicionarTag(TipoCampo.Str, "", "Discriminacao", 1, 2000, Ocorrencia.Obrigatoria,
+        dadosServico.AddChild(AddTag(TipoCampo.Str, "", "Discriminacao", 1, 2000, Ocorrencia.Obrigatoria,
             nota.Servico.Discriminacao));
-        dadosServico.AddChild(AdicionarTag(TipoCampo.Str, "", "CodigoCnae", 1, 140, Ocorrencia.NaoObrigatoria,
+        dadosServico.AddChild(AddTag(TipoCampo.Str, "", "CodigoCnae", 1, 140, Ocorrencia.NaoObrigatoria,
             nota.Servico.CodigoCnae));
-        dadosServico.AddChild(AdicionarTag(TipoCampo.Int, "", "Quantidade", 1, 13, Ocorrencia.NaoObrigatoria, 1));
-        dadosServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorServico", 1, 15, Ocorrencia.Obrigatoria,
+        dadosServico.AddChild(AddTag(TipoCampo.Int, "", "Quantidade", 1, 13, Ocorrencia.NaoObrigatoria, 1));
+        dadosServico.AddChild(AddTag(TipoCampo.De2, "", "ValorServico", 1, 15, Ocorrencia.Obrigatoria,
             nota.Servico.Valores.ValorServicos));
 
         listaServico.AddChild(dadosServico);
@@ -224,12 +236,12 @@ internal class ProviderAgili : ProviderABRASF
         var declaracaoPrestacaoServico = new XElement("DeclaracaoPrestacaoServico");
         declaracaoPrestacaoServico.Add(WriteIdentificacaoPrestador(nota));
 
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.Int, "", "NfseSubstituida", 1, 1,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.Int, "", "NfseSubstituida", 1, 1,
             Ocorrencia.MaiorQueZero, 0));
 
         var rps = new XElement("Rps");
         rps.AddChild(WriteIdentificacao(nota));
-        rps.AddChild(AdicionarTag(TipoCampo.Dat, "", "DataEmissao", 1, 1, Ocorrencia.Obrigatoria,
+        rps.AddChild(AddTag(TipoCampo.Dat, "", "DataEmissao", 1, 1, Ocorrencia.Obrigatoria,
             nota.IdentificacaoRps.DataEmissao));
         declaracaoPrestacaoServico.AddChild(rps);
 
@@ -249,31 +261,31 @@ internal class ProviderAgili : ProviderABRASF
             {
                 case RegimeEspecialTributacao.Estimativa:
                 {
-                    regimeEspecialTributacao.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1,
+                    regimeEspecialTributacao.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1,
                         Ocorrencia.Obrigatoria, "-2"));
                     break;
                 }
                 case RegimeEspecialTributacao.SociedadeProfissionais:
                 {
-                    regimeEspecialTributacao.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1,
+                    regimeEspecialTributacao.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1,
                         Ocorrencia.Obrigatoria, "-3"));
                     break;
                 }
                 case RegimeEspecialTributacao.Cooperativa:
                 {
-                    regimeEspecialTributacao.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1,
+                    regimeEspecialTributacao.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1,
                         Ocorrencia.Obrigatoria, "-4"));
                     break;
                 }
                 case RegimeEspecialTributacao.MicroEmpresarioIndividual:
                 {
-                    regimeEspecialTributacao.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1,
+                    regimeEspecialTributacao.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1,
                         Ocorrencia.Obrigatoria, "-5"));
                     break;
                 }
                 case RegimeEspecialTributacao.MicroEmpresarioEmpresaPP:
                 {
-                    regimeEspecialTributacao.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1,
+                    regimeEspecialTributacao.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1,
                         Ocorrencia.Obrigatoria, "-6"));
                     break;
                 }
@@ -282,13 +294,13 @@ internal class ProviderAgili : ProviderABRASF
             declaracaoPrestacaoServico.AddChild(regimeEspecialTributacao);
         }
 
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.Int, "", "OptanteSimplesNacional", 1, 1,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.Int, "", "OptanteSimplesNacional", 1, 1,
             Ocorrencia.Obrigatoria, nota.OptanteSimplesNacional == NFSeSimNao.Sim ? 1 : 0));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.Int, "", "OptanteMEISimei", 1, 1,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.Int, "", "OptanteMEISimei", 1, 1,
             Ocorrencia.Obrigatoria, nota.OptanteMEISimei == NFSeSimNao.Sim ? 1 : 0));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.Int, "", "ISSQNRetido", 1, 1, Ocorrencia.Obrigatoria,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.Int, "", "ISSQNRetido", 1, 1, Ocorrencia.Obrigatoria,
             nota.Servico.Valores.IssRetido == SituacaoTributaria.Retencao ? 1 : 0));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.Str, "", "ItemLei116AtividadeEconomica", 1, 140,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.Str, "", "ItemLei116AtividadeEconomica", 1, 140,
             Ocorrencia.NaoObrigatoria, nota.Servico.ItemListaServico));
 
         var exigibilidadeIss = new XElement("ExigibilidadeISSQN");
@@ -297,43 +309,43 @@ internal class ProviderAgili : ProviderABRASF
         {
             case ExigibilidadeIss.Exigivel:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-1"));
                 break;
             }
             case ExigibilidadeIss.NaoIncidencia:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-2"));
                 break;
             }
             case ExigibilidadeIss.Isencao:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-3"));
                 break;
             }
             case ExigibilidadeIss.Exportacao:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-4"));
                 break;
             }
             case ExigibilidadeIss.Imunidade:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-5"));
                 break;
             }
             case ExigibilidadeIss.SuspensaDecisaoJudicial:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-6"));
                 break;
             }
             case ExigibilidadeIss.SuspensaProcessoAdministrativo:
             {
-                exigibilidadeIss.AddChild(AdicionarTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
+                exigibilidadeIss.AddChild(AddTag(TipoCampo.Int, "", "Codigo", 1, 1, Ocorrencia.Obrigatoria,
                     "-7"));
                 break;
             }
@@ -343,36 +355,36 @@ internal class ProviderAgili : ProviderABRASF
 
         var municipioIncidencia = new XElement("MunicipioIncidencia");
 
-        municipioIncidencia.AddChild(AdicionarTag(TipoCampo.Int, "", "CodigoMunicipioIBGE", 1, 7,
+        municipioIncidencia.AddChild(AddTag(TipoCampo.Int, "", "CodigoMunicipioIBGE", 1, 7,
             Ocorrencia.Obrigatoria, nota.Servico.MunicipioIncidencia));
         declaracaoPrestacaoServico.AddChild(municipioIncidencia);
 
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorServicos", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorServicos", 1, 15,
             Ocorrencia.Obrigatoria, nota.Servico.Valores.ValorServicos));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorPis", 1, 15, Ocorrencia.MaiorQueZero,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorPis", 1, 15, Ocorrencia.MaiorQueZero,
             nota.Servico.Valores.ValorPis));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorCofins", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorCofins", 1, 15,
             Ocorrencia.MaiorQueZero, nota.Servico.Valores.ValorCofins));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorInss", 1, 15, Ocorrencia.MaiorQueZero,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorInss", 1, 15, Ocorrencia.MaiorQueZero,
             nota.Servico.Valores.ValorInss));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorIrrf", 1, 15, Ocorrencia.MaiorQueZero,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorIrrf", 1, 15, Ocorrencia.MaiorQueZero,
             nota.Servico.Valores.ValorIr));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorCsll", 1, 15, Ocorrencia.MaiorQueZero,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorCsll", 1, 15, Ocorrencia.MaiorQueZero,
             nota.Servico.Valores.ValorCsll));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorOutrasRetencoes", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorOutrasRetencoes", 1, 15,
             Ocorrencia.MaiorQueZero, nota.Servico.Valores.ValorOutrasRetencoes));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorBaseCalculoISSQN", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorBaseCalculoISSQN", 1, 15,
             Ocorrencia.MaiorQueZero, nota.Servico.Valores.BaseCalculo));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "AliquotaISSQN", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "AliquotaISSQN", 1, 15,
             Ocorrencia.MaiorQueZero, nota.Servico.Valores.Aliquota));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorISSQNCalculado", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorISSQNCalculado", 1, 15,
             Ocorrencia.MaiorQueZero, nota.Servico.Valores.ValorIss));
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.De2, "", "ValorLiquido", 1, 15,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.De2, "", "ValorLiquido", 1, 15,
             Ocorrencia.MaiorQueZero, nota.Servico.Valores.ValorLiquidoNfse));
 
         declaracaoPrestacaoServico.AddChild(WriteListaServico(nota));
 
-        declaracaoPrestacaoServico.AddChild(AdicionarTag(TipoCampo.Str, "", "Versao", 1, 1, Ocorrencia.Obrigatoria,
+        declaracaoPrestacaoServico.AddChild(AddTag(TipoCampo.Str, "", "Versao", 1, 1, Ocorrencia.Obrigatoria,
             "1.00"));
 
         return declaracaoPrestacaoServico;
@@ -383,10 +395,10 @@ internal class ProviderAgili : ProviderABRASF
         switch (notas.Count)
         {
             case 0:
-                retornoWebservice.Erros.Add(new Evento { Codigo = "0", Descricao = "RPS não informado." });
+                retornoWebservice.Erros.Add(new EventoRetorno { Codigo = "0", Descricao = "RPS não informado." });
                 break;
             case > 3:
-                retornoWebservice.Erros.Add(new Evento
+                retornoWebservice.Erros.Add(new EventoRetorno
                     { Codigo = "0", Descricao = "Apenas 3 RPS podem ser enviados em modo Sincrono." });
                 break;
         }
@@ -407,7 +419,7 @@ internal class ProviderAgili : ProviderABRASF
         var xmlLote = new StringBuilder();
         xmlLote.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         xmlLote.Append($"<GerarNfseEnvio {GetNamespace()}>");
-        xmlLote.Append($"<UnidadeGestora>{Municipio.CnpjPrefeitura}</UnidadeGestora>");
+        xmlLote.Append($"<UnidadeGestora>{UnidadeGestora}</UnidadeGestora>");
         xmlLote.Append(xmlLoteRps);
 
         xmlLote.Append("</GerarNfseEnvio>");
@@ -417,9 +429,9 @@ internal class ProviderAgili : ProviderABRASF
     protected override void PrepararEnviar(RetornoEnviar retornoWebservice, NotaServicoCollection notas)
     {
         if (retornoWebservice.Lote == 0)
-            retornoWebservice.Erros.Add(new Evento { Codigo = "0", Descricao = "Lote não informado." });
+            retornoWebservice.Erros.Add(new EventoRetorno { Codigo = "0", Descricao = "Lote não informado." });
         if (notas.Count == 0)
-            retornoWebservice.Erros.Add(new Evento { Codigo = "0", Descricao = "RPS não informado." });
+            retornoWebservice.Erros.Add(new EventoRetorno { Codigo = "0", Descricao = "RPS não informado." });
         if (retornoWebservice.Erros.Count > 0) return;
 
         var xmlLoteRps = new StringBuilder();
@@ -438,7 +450,7 @@ internal class ProviderAgili : ProviderABRASF
         var xmlLote = new StringBuilder();
         xmlLote.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         xmlLote.Append($"<EnviarLoteRpsEnvio {GetNamespace()}>");
-        xmlLote.Append($"<UnidadeGestora>{Municipio.CnpjPrefeitura}</UnidadeGestora>");
+        xmlLote.Append($"<UnidadeGestora>{UnidadeGestora}</UnidadeGestora>");
         xmlLote.Append("<LoteRps>");
         xmlLote.Append($"<NumeroLote>{retornoWebservice.Lote}</NumeroLote>");
         xmlLote.Append("<IdentificacaoPrestador>");
@@ -493,7 +505,7 @@ internal class ProviderAgili : ProviderABRASF
     {
         if (retornoWebservice.NumeroNFSe.IsEmpty() || retornoWebservice.CodigoCancelamento.IsEmpty())
         {
-            retornoWebservice.Erros.Add(new Evento
+            retornoWebservice.Erros.Add(new EventoRetorno
                 { Codigo = "0", Descricao = "Número da NFSe/Codigo de cancelamento não informado para cancelamento." });
             return;
         }
@@ -501,7 +513,7 @@ internal class ProviderAgili : ProviderABRASF
         var loteBuilder = new StringBuilder();
         loteBuilder.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         loteBuilder.Append($"<CancelarNfseEnvio {GetNamespace()}>");
-        loteBuilder.Append($"<UnidadeGestora>{Municipio.CnpjPrefeitura}</UnidadeGestora>");
+        loteBuilder.Append($"<UnidadeGestora>{UnidadeGestora}</UnidadeGestora>");
         loteBuilder.Append("<PedidoCancelamento>");
         loteBuilder.Append("<IdentificacaoNfse>");
         loteBuilder.Append($"<Numero>{retornoWebservice.NumeroNFSe}</Numero>");
@@ -570,7 +582,7 @@ internal class ProviderAgili : ProviderABRASF
     {
         if (retornoWebservice.NumeroRps < 1)
         {
-            retornoWebservice.Erros.Add(new Evento
+            retornoWebservice.Erros.Add(new EventoRetorno
                 { Codigo = "0", Descricao = "Número da NFSe não informado para a consulta." });
             return;
         }
@@ -654,7 +666,7 @@ internal class ProviderAgili : ProviderABRASF
         var protocoloCancelamento = xmlRet.Root.ElementAnyNs("ProtocoloRequerimentoCancelamento");
         if (protocoloCancelamento == null)
         {
-            retornoWebservice.Erros.Add(new Evento
+            retornoWebservice.Erros.Add(new EventoRetorno
                 { Codigo = "0", Descricao = "Confirmação do cancelamento não encontrada!" });
             return;
         }

@@ -8,7 +8,7 @@
 // ***********************************************************************
 // <copyright file="NFSeRestServiceClient.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -37,11 +37,24 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using OpenAC.Net.NFSe.Commom;
 
 namespace OpenAC.Net.NFSe.Providers;
 
 public abstract class NFSeMultiPartClient : NFSeHttpServiceClient
 {
+    #region Inner Types
+
+    protected enum SendFormat
+    {
+        Text,
+        Binary,
+        File
+    }
+
+    #endregion  Inner Types
+    
     #region Constructors
 
     protected NFSeMultiPartClient(ProviderBase provider, TipoUrl tipoUrl) : base(provider, tipoUrl)
@@ -54,6 +67,8 @@ public abstract class NFSeMultiPartClient : NFSeHttpServiceClient
 
     #endregion Constructors
 
+    #region Properties
+
     protected string FileNameForm { get; set; } = "file";
     
     protected string UsuarioForm { get; set; } = "login";
@@ -62,20 +77,35 @@ public abstract class NFSeMultiPartClient : NFSeHttpServiceClient
 
     protected bool UseFormAuth { get; set; } = true;
 
+    #endregion Properties
+
     #region Methods
 
-    protected string Upload(string message)
+    protected string Upload(string message, string contentType = "text/xml", SendFormat sendFormat = SendFormat.Text)
     {
         var url = Url;
 
         try
         {
             EnvelopeEnvio = message;
-
-            var form = new MultipartFormDataContent
+            HttpContent content = sendFormat switch
             {
-                { new ByteArrayContent(Charset.GetBytes(EnvelopeEnvio)), FileNameForm, $"{DateTime.Now:yyyyMMddssfff}_{PrefixoEnvio}_envio.xml" }
+                SendFormat.Text => new StringContent(EnvelopeEnvio),
+                SendFormat.Binary => new ByteArrayContent(Encoding.UTF8.GetBytes(EnvelopeEnvio)),
+                SendFormat.File => new StreamContent(GetFileStream(message)),
+                _ => throw new ArgumentException("Formato de envio inválido", nameof(sendFormat))
             };
+            
+            content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(EnvelopeEnvio), FileNameForm, $"{DateTime.Now:yyyyMMddssfff}_{PrefixoEnvio}_envio.xml");
+
+            if (content is ByteArrayContent arrayContent)
+            {
+                arrayContent.Headers.Add("Content-Transfer-Encoding", "binary");
+                arrayContent.Headers.ContentEncoding.Add("Cp1252");
+            }
 
             if (UseFormAuth)
             {
@@ -98,6 +128,13 @@ public abstract class NFSeMultiPartClient : NFSeHttpServiceClient
             Url = url;
         }
     }
-
+    
+    private static FileStream GetFileStream(string message)
+    {
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, message);
+        return new FileStream(tempFile, FileMode.Open);
+    }
+    
     #endregion Methods
 }

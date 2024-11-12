@@ -1,14 +1,14 @@
-// ***********************************************************************
+﻿// ***********************************************************************
 // Assembly         : OpenAC.Net.NFSe
 // Author           : Rafael Dias
-// Created          : 06-17-2016
+// Created          : 16-09-2024
 //
 // Last Modified By : Rafael Dias
-// Last Modified On : 06-17-2016
+// Last Modified On : 16-09-2024
 // ***********************************************************************
-// <copyright file="Evento.cs" company="OpenAC .Net">
+// <copyright file="CodigoTOM.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		    Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -29,36 +29,26 @@
 // <summary></summary>
 // ***********************************************************************
 
-using OpenAC.Net.NFSe.Nota;
+namespace OpenAC.Net.NFSe.Commom;
 
-namespace OpenAC.Net.NFSe.Providers;
-
-public class Evento
+public static partial class CodigoTOM
 {
-    #region Constructor
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Evento"/> class.
-    /// </summary>
-    public Evento()
+    private static void AddRR()
     {
-        IdentificacaoNfse = new IdeNFSe();
-        IdentificacaoRps = new IdeRps();
+        AddCidade("1400027", "0026"); // Amajari/RR
+        AddCidade("1400050", "0305"); // Alto Alegre/RR
+        AddCidade("1400100", "0301"); // Boa Vista/RR
+        AddCidade("1400159", "0307"); // Bonfim/RR
+        AddCidade("1400175", "0028"); // Canta/RR
+        AddCidade("1400209", "0303"); // Caracarai/RR
+        AddCidade("1400233", "0030"); // Caroebe/RR
+        AddCidade("1400282", "0032"); // Iracema/RR
+        AddCidade("1400308", "0309"); // Mucajai/RR
+        AddCidade("1400407", "0311"); // Normandia/RR
+        AddCidade("1400456", "0034"); // Pacaraima/RR
+        AddCidade("1400472", "0036"); // Rorainopolis/RR
+        AddCidade("1400506", "0313"); // Sao Joao Da Baliza/RR
+        AddCidade("1400605", "0315"); // Sao Luiz/RR
+        AddCidade("1400704", "0038"); // Uiramuta/RR
     }
-
-    #endregion Constructor
-
-    #region Propriedades
-
-    public string Codigo { get; set; }
-
-    public string Descricao { get; set; }
-
-    public string Correcao { get; set; }
-
-    public IdeRps IdentificacaoRps { get; set; }
-
-    public IdeNFSe IdentificacaoNfse { get; set; }
-
-    #endregion Propriedades
 }

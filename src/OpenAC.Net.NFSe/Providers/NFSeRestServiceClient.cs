@@ -8,7 +8,7 @@
 // ***********************************************************************
 // <copyright file="NFSeRestServiceClient.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
+using OpenAC.Net.NFSe.Commom;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -72,7 +73,7 @@ public abstract class NFSeRestServiceClient : NFSeHttpServiceClient
         {
             SetAction(action);
             EnvelopeEnvio = string.Empty;
-            Execute(null, HttpMethod.Get);
+            ExecuteGet();
             return EnvelopeRetorno;
         }
         finally
@@ -90,7 +91,7 @@ public abstract class NFSeRestServiceClient : NFSeHttpServiceClient
             SetAction(action);
 
             EnvelopeEnvio = message;
-            Execute(new StringContent(message, Charset, contentyType), HttpMethod.Post);
+            ExecutePost(new StringContent(message, Charset, contentyType));
             return EnvelopeRetorno;
         }
         finally
@@ -114,11 +115,11 @@ public abstract class NFSeRestServiceClient : NFSeHttpServiceClient
 
             var requestContent = new MultipartFormDataContent();
             var fileContent = new ByteArrayContent(Charset.GetBytes(EnvelopeEnvio));
-            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(HttpContentType.Applicationxml);
+            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(HttpContentType.ApplicationXml);
 
             requestContent.Add(fileContent, "file", fileName);
 
-            Execute(requestContent, HttpMethod.Post);
+            ExecutePost(requestContent);
             return EnvelopeRetorno;
         }
         finally
@@ -129,7 +130,6 @@ public abstract class NFSeRestServiceClient : NFSeHttpServiceClient
 
     protected void SetAction(string action)
     {
-        Url ??= "";
         Url = !Url.EndsWith("/") ? $"{Url}/{action}" : $"{Url}{action}";
     }
 

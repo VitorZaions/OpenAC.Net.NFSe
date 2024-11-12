@@ -9,7 +9,7 @@
 // ***********************************************************************
 // <copyright file="IPMServiceClient.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,10 @@
 
 using OpenAC.Net.DFe.Core;
 using System;
+using System.Net;
 using OpenAC.Net.Core;
 using OpenAC.Net.Core.Extensions;
+using OpenAC.Net.NFSe.Commom;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -46,19 +48,20 @@ public sealed class IPM101ServiceClient : NFSeMultiPartClient, IServiceClient
         Charset = OpenEncoding.CP1252;
         FileNameForm = "filename";
         UseFormAuth = false;
+        AuthenticationScheme  = AuthScheme.Basic;
     }
 
     #endregion Constructors
 
     #region Methods
 
-    public string EnviarSincrono(string cabec, string msg) => Upload(msg);
+    public string EnviarSincrono(string cabec, string msg) => Upload(msg, sendFormat: SendFormat.Binary);
 
-    public string ConsultarLoteRps(string cabec, string msg) => Upload(msg);
+    public string ConsultarLoteRps(string cabec, string msg) => Upload(msg, sendFormat: SendFormat.Binary);
+    
+    public string CancelarNFSe(string cabec, string msg) => Upload(msg, sendFormat: SendFormat.Binary);
 
     public string ConsultarNFSeRps(string cabec, string msg) => throw new NotImplementedException();
-
-    public string CancelarNFSe(string cabec, string msg) => Upload(msg);
 
     public string Enviar(string cabec, string msg) => throw new NotImplementedException();
 

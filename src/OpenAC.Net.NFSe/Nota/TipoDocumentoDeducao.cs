@@ -1,14 +1,14 @@
-// ***********************************************************************
+﻿// ***********************************************************************
 // Assembly         : OpenAC.Net.NFSe
 // Author           : Rafael Dias
-// Created          : 06-19-2016
+// Created          : 09-12-2024
 //
 // Last Modified By : Rafael Dias
-// Last Modified On : 08-03-2017
+// Last Modified On : 09-12-2024
 // ***********************************************************************
-// <copyright file="MunicipiosNFSe.cs" company="OpenAC .Net">
+// <copyright path="TipoDocumentoDeducao.cs" company="OpenAC .Net">
 //		        		   The MIT License (MIT)
-//	     		    Copyright (c) 2014 - 2023 Projeto OpenAC .Net
+//	     		Copyright (c) 2014 - 2024 Projeto OpenAC .Net
 //
 //	 Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -29,18 +29,11 @@
 // <summary></summary>
 // ***********************************************************************
 
-using OpenAC.Net.DFe.Core.Attributes;
-using OpenAC.Net.DFe.Core.Document;
+namespace OpenAC.Net.NFSe.Nota;
 
-namespace OpenAC.Net.NFSe.Providers;
-
-/// <summary>
-/// Classe usada apenas para salvar o xml dos Municipios.
-/// </summary>
-[DFeRoot("OpenNFSe", Namespace = "https://www.openac.net.br/")]
-internal sealed class MunicipiosNFSe : DFeDocument<MunicipiosNFSe>
+public enum TipoDocumentoDeducao
 {
-    [DFeCollection("Municipios")]
-    [DFeItem(typeof(OpenMunicipioNFSe), "Municipio")]
-    public OpenMunicipioNFSe[] Municipios { get; set; }
+    NFSe,
+    NFe,
+    Outros
 }
