@@ -41,5 +41,12 @@ public sealed class RetornoEnviar : RetornoWebservice
 
     public string Protocolo { get; internal set; } = "";
 
+   // public string NumeroRPS { get; internal set; } = "";
+
+   // public string SerieRPS { get; internal set; } = "";
+
+    public string NumeroNFSe { get; internal set; } = "";
+
+
     public bool Sincrono { get; internal set; }
 }

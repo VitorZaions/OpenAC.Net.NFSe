@@ -130,6 +130,8 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
         
         retornoWebservice.Data = innerXml.Root?.ElementAnyNs("DataRecebimento")?.GetValue<DateTime>() ?? DateTime.MinValue;
         retornoWebservice.Protocolo = innerXml.Root?.ElementAnyNs("ListaNfse")?.ElementAnyNs("CompNfse")?.ElementAnyNs("Nfse")?.ElementAnyNs("InfNfse")?.ElementAnyNs("CodigoVerificacao")?.GetValue<string>() ?? string.Empty;
+        retornoWebservice.NumeroNFSe = innerXml.Root?.ElementAnyNs("ListaNfse")?.ElementAnyNs("CompNfse")?.ElementAnyNs("Nfse")?.ElementAnyNs("InfNfse")?.ElementAnyNs("Numero")?.GetValue<string>() ?? string.Empty;
+
         retornoWebservice.Sucesso = !retornoWebservice.Protocolo.IsEmpty();
 
         if (!retornoWebservice.Sucesso) return;
