@@ -43,6 +43,7 @@ using OpenAC.Net.NFSe.Commom.Interface;
 using OpenAC.Net.NFSe.Commom.Model;
 using OpenAC.Net.NFSe.Commom.Types;
 using System.Web;
+using System.Collections.Generic;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -222,6 +223,39 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
                 }
             }
         }
+    }
+
+    /// <inheritdoc />
+    protected override void TratarRetornoConsultarNFSe(RetornoConsultarNFSe retornoWebservice, NotaServicoCollection notas)
+    {
+        // Analisa mensagem de retorno
+        var xmlRet = XDocument.Parse(retornoWebservice.XmlRetorno);
+        MensagemErro(retornoWebservice, xmlRet.Root, "ConsultarNfseFaixaResposta");
+        if (retornoWebservice.Erros.Any()) return;
+
+        var retornoLote = xmlRet.ElementAnyNs("ConsultarNfseFaixaResposta");
+        var listaNfse = retornoLote?.ElementAnyNs("ListaNfse");
+        if (listaNfse == null)
+        {
+            retornoWebservice.Erros.Add(new EventoRetorno { Codigo = "0", Descricao = "Lista de NFSe não encontrada! (ListaNfse)" });
+            return;
+        }
+
+        var notasServico = new List<NotaServico>();
+
+        foreach (var compNfse in listaNfse.ElementsAnyNs("CompNfse"))
+        {
+            // Carrega a nota fiscal na coleção de Notas Fiscais
+            var nota = LoadXml(compNfse.AsString());
+
+            GravarNFSeEmDisco(compNfse.AsString(true), $"NFSe-{nota.IdentificacaoNFSe.Numero}-{nota.IdentificacaoNFSe.Chave}-.xml", nota.IdentificacaoNFSe.DataEmissao);
+
+            notasServico.Add(nota);
+            notas.Add(nota);
+        }
+
+        retornoWebservice.ProximaPagina = listaNfse.ElementAnyNs("ProximaPagina")?.GetValue<int>() ?? 0;
+        retornoWebservice.Notas = notasServico.ToArray();
     }
 
     /// <inheritdoc />
