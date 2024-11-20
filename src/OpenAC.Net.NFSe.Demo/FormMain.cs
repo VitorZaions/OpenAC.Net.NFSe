@@ -15,7 +15,7 @@ using OpenAC.Net.DFe.Core.Extensions;
 using OpenAC.Net.NFSe.Commom;
 using OpenAC.Net.NFSe.Commom.Model;
 using OpenAC.Net.NFSe.Commom.Types;
-using OpenAC.Net.NFSe.DANFSe.FastReport.OpenSource;
+using OpenAC.Net.NFSe.DANFSe.FastReport;
 using OpenAC.Net.NFSe.DANFSe.QuestPdf;
 using OpenAC.Net.NFSe.Nota;
 using OpenAC.Net.NFSe.Providers;

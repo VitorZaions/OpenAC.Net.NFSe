@@ -31,7 +31,7 @@
 
 using System;
 using System.IO;
-using FastReport;
+using FR = FastReport; 
 using FastReport.Export.Html;
 using FastReport.Export.Pdf;
 using OpenAC.Net.Core.Extensions;
@@ -44,7 +44,7 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
 {
     #region Fields
 
-    private Report internalReport;
+    private FR.Report internalReport;
 
     #endregion Fields
 
@@ -138,7 +138,7 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
 
     private void Imprimir(NotaServico[] notas, Stream stream)
     {
-        using (internalReport = new Report())
+        using (internalReport = new FR.Report())
         {
             PrepararImpressao();
 

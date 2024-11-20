@@ -231,17 +231,29 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
         // Analisa mensagem de retorno
         var xmlRet = XDocument.Parse(retornoWebservice.XmlRetorno);
         MensagemErro(retornoWebservice, xmlRet.Root, "ConsultarNfseFaixaResposta");
+
+        // Primeiro, extraia o conte�do do elemento <return>
+        var returnElement = xmlRet.Root?.Value;
+
+        // Decodifique o conte�do XML escapado
+        var decodedXml = System.Net.WebUtility.HtmlDecode(returnElement);
+
+        // Parseie o XML decodificado
+        var innerXml = XDocument.Parse(decodedXml);
+
         if (retornoWebservice.Erros.Any()) return;
 
-        var retornoLote = xmlRet.ElementAnyNs("ConsultarNfseFaixaResposta");
+        var retornoLote = innerXml.ElementAnyNs("ConsultarNfseFaixaResposta");
         var listaNfse = retornoLote?.ElementAnyNs("ListaNfse");
         if (listaNfse == null)
         {
             retornoWebservice.Erros.Add(new EventoRetorno { Codigo = "0", Descricao = "Lista de NFSe não encontrada! (ListaNfse)" });
+            retornoWebservice.Sucesso = false;
             return;
         }
 
         var notasServico = new List<NotaServico>();
+        retornoWebservice.Sucesso = true;
 
         foreach (var compNfse in listaNfse.ElementsAnyNs("CompNfse"))
         {

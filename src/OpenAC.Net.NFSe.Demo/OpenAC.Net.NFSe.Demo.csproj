@@ -19,7 +19,7 @@
   </ItemGroup>
   
   <ItemGroup>
-	<ProjectReference Include="..\OpenAC.Net.NFSe.DANFSe.FastReport.OpenSource\OpenAC.Net.NFSe.DANFSe.FastReport.OpenSource.csproj" />
+	<ProjectReference Include="..\OpenAC.Net.NFSe.DANFSe.FastReport\OpenAC.Net.NFSe.DANFSe.FastReport.csproj" />
 	<ProjectReference Include="..\OpenAC.Net.NFSe.DANFSe.QuestPdf\OpenAC.Net.NFSe.DANFSe.QuestPdf.csproj" />
 	<ProjectReference Include="..\OpenAC.Net.NFSe\OpenAC.Net.NFSe.csproj" />
   </ItemGroup>
