@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace OpenAC.Net.NFSe.DANFSe.FastReport.Properties {
+namespace OpenAC.Net.NFSe.DANFSe.FastReport.OpenSource.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace OpenAC.Net.NFSe.DANFSe.FastReport.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("OpenAC.Net.NFSe.DANFSe.FastReport.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("OpenAC.Net.NFSe.DANFSe.FastReport.OpenSource.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,16 +57,6 @@ namespace OpenAC.Net.NFSe.DANFSe.FastReport.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Consulta um recurso localizado do tipo System.Byte[].
-        /// </summary>
-        internal static byte[] DANFSe {
-            get {
-                object obj = ResourceManager.GetObject("DANFSe", resourceCulture);
-                return ((byte[])(obj));
             }
         }
     }

@@ -140,7 +140,7 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
     {
         using (internalReport = new FR.Report())
         {
-            PrepararImpressao();
+            PrepararImpressao(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Relatorios", "DANFSe.frx"));
 
             internalReport.RegisterData(notas, "NotaServico");
             internalReport.Prepare();
@@ -205,8 +205,9 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
         internalReport = null;
     }
 
-    private void PrepararImpressao()
+    private void PrepararImpressao(string PathFRX)
     {
+        /*
         var e = new DANFSeEventArgs(Configuracoes.Layout);
         OnGetReport.Raise(this, e);
         if (e.FilePath.IsEmpty() || !File.Exists(e.FilePath))
@@ -239,9 +240,9 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
             internalReport.Load(ms);
         }
         else
-        {
-            internalReport.Load(e.FilePath);
-        }
+        {*/
+            internalReport.Load(PathFRX);
+        //}
 
         internalReport.SetParameterValue("Logo", Configuracoes.Logo.ToByteArray());
         internalReport.SetParameterValue("LogoPrefeitura", Configuracoes.LogoPrefeitura.ToByteArray());

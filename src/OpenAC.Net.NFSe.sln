@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenAC.Net.NFSe.Test", "Ope
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenAC.Net.NFSe.DANFSe.QuestPdf", "OpenAC.Net.NFSe.DANFSe.QuestPdf\OpenAC.Net.NFSe.DANFSe.QuestPdf.csproj", "{C50F1C5C-180F-48DD-B7CF-050AFE4B002D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenAC.Net.NFSe.DANFSe.FastReport", "OpenAC.Net.NFSe.DANFSe.FastReport\OpenAC.Net.NFSe.DANFSe.FastReport.csproj", "{BA9DBAB3-31F1-4D98-AD4D-CD73CF0B6921}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenAC.Net.NFSe.DANFSe.FastReport", "OpenAC.Net.NFSe.DANFSe.FastReport\OpenAC.Net.NFSe.DANFSe.FastReport.csproj", "{A9F7F3EC-4C91-4600-9FDF-C8A90C61008A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{C50F1C5C-180F-48DD-B7CF-050AFE4B002D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C50F1C5C-180F-48DD-B7CF-050AFE4B002D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C50F1C5C-180F-48DD-B7CF-050AFE4B002D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BA9DBAB3-31F1-4D98-AD4D-CD73CF0B6921}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA9DBAB3-31F1-4D98-AD4D-CD73CF0B6921}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BA9DBAB3-31F1-4D98-AD4D-CD73CF0B6921}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BA9DBAB3-31F1-4D98-AD4D-CD73CF0B6921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9F7F3EC-4C91-4600-9FDF-C8A90C61008A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9F7F3EC-4C91-4600-9FDF-C8A90C61008A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9F7F3EC-4C91-4600-9FDF-C8A90C61008A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9F7F3EC-4C91-4600-9FDF-C8A90C61008A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

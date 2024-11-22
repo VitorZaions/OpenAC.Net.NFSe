@@ -44,6 +44,8 @@ using OpenAC.Net.NFSe.Commom.Model;
 using OpenAC.Net.NFSe.Commom.Types;
 using System.Web;
 using System.Collections.Generic;
+using OpenAC.Net.Core;
+using System.Xml;
 
 namespace OpenAC.Net.NFSe.Providers;
 
@@ -271,6 +273,58 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
     }
 
     /// <inheritdoc />
+
+    public override NotaServico LoadXml(XDocument xml)
+    {
+        Guard.Against<XmlException>(xml == null, "Xml invalido.");
+
+        // Primeiro, extraia o conte�do do elemento <return>
+        //var returnElement = xml.Root?.Value;
+
+        // Decodifique o conte�do XML escapado
+        //var decodedXml = System.Net.WebUtility.HtmlDecode(xml);
+
+        // Parseie o XML decodificado
+        //var innerXml = XDocument.Parse(decodedXml);
+
+        XElement rootNFSe = null;
+        XElement rootCanc = null;
+        XElement rootSub = null;
+        XElement rootRps;
+
+        var rootResposta = xml.ElementAnyNs("EnviarLoteRpsSincronoResposta");
+        var rootLista = rootResposta.ElementAnyNs("ListaNfse");
+        var rootGrupo = rootLista.ElementAnyNs("CompNfse");
+        if (rootGrupo != null)
+        {
+            rootNFSe = rootGrupo.ElementAnyNs("Nfse")?.ElementAnyNs("InfNfse");
+            rootCanc = rootGrupo.ElementAnyNs("NfseCancelamento");
+            rootSub = rootGrupo.ElementAnyNs("NfseSubstituicao");
+            rootRps = rootNFSe.ElementAnyNs("DeclaracaoPrestacaoServico")?.ElementAnyNs("InfDeclaracaoPrestacaoServico");
+        }
+        else
+        {
+            rootRps = xml.ElementAnyNs("Rps").ElementAnyNs("InfDeclaracaoPrestacaoServico");
+        }
+
+        Guard.Against<XmlException>(rootNFSe == null && rootRps == null, "Xml de RPS ou NFSe invalido.");
+
+        var ret = new NotaServico(Configuracoes)
+        {
+            XmlOriginal = xml.AsString()
+        };
+
+        if (rootRps != null) //Goiania não retorna o RPS, somente a NFSe
+            LoadRps(ret, rootRps);
+
+        if (rootNFSe == null) return ret;
+
+        LoadNFSe(ret, rootNFSe);
+        if (rootSub != null) LoadNFSeSub(ret, rootSub);
+        if (rootCanc != null) LoadNFSeCancelada(ret, rootCanc);
+
+        return ret;
+    }
 
     protected override void PrepararConsultarNFSe(RetornoConsultarNFSe retornoWebservice)
     {
