@@ -37,6 +37,8 @@ using FastReport.Export.Pdf;
 using OpenAC.Net.Core.Extensions;
 using OpenAC.Net.NFSe.Configuracao;
 using OpenAC.Net.NFSe.Nota;
+using System.Collections.Generic;
+using System.Data;
 
 namespace OpenAC.Net.NFSe.DANFSe.FastReport;
 
@@ -136,14 +138,46 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
         }
     }
 
+    private DataTable ToDataTable<T>(T[] array)
+    {
+        // Criando um DataTable
+        var dataTable = new DataTable();
+
+        // Pegando as propriedades da classe T
+        var properties = typeof(T).GetProperties();
+
+        // Adicionando as colunas ao DataTable
+        foreach (var property in properties)
+        {
+            dataTable.Columns.Add(property.Name, property.PropertyType);
+        }
+
+        // Adicionando as linhas ao DataTable
+        foreach (var item in array)
+        {
+            var row = dataTable.NewRow();
+            foreach (var property in properties)
+            {
+                row[property.Name] = property.GetValue(item);
+            }
+            dataTable.Rows.Add(row);
+        }
+
+        return dataTable;
+    }
+
     private void Imprimir(NotaServico[] notas, Stream stream)
     {
         using (internalReport = new FR.Report())
         {
-            PrepararImpressao(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Relatorios", "DANFSe.frx"));
+            string pathfinal = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Relatorios", "DANFSe.frx");
+            PrepararImpressao(pathfinal);
 
-            internalReport.RegisterData(notas, "NotaServico");
-            internalReport.Prepare();
+            //internalReport.Dictionary.RegisterBusinessObject(notas, "NotaServico", 10, true);
+            //internalReport.Dictionary.RegisterData(notas, "NotaServico", true);
+            internalReport.Dictionary.RegisterData(notas, "NotaServico", true);
+            //internalReport.Prepare();
+            internalReport.Save(pathfinal);
 
             switch (Configuracoes.Filtro)
             {
@@ -250,7 +284,7 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
         internalReport.SetParameterValue("Ambiente", (int)Configuracoes.NFSe.WebServices.Ambiente);
         internalReport.SetParameterValue("SoftwareHouse", Configuracoes.SoftwareHouse);
         internalReport.SetParameterValue("Site", Configuracoes.Site);
-
+        
         internalReport.PrintSettings.Copies = Configuracoes.NumeroCopias;
         internalReport.PrintSettings.Printer = Configuracoes.Impressora;
         internalReport.PrintSettings.ShowDialog = Configuracoes.MostrarSetup;
