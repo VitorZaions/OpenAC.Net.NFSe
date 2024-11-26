@@ -172,12 +172,8 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
         {
             string pathfinal = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Relatorios", "DANFSe.frx");
             PrepararImpressao(pathfinal);
-
-            //internalReport.Dictionary.RegisterBusinessObject(notas, "NotaServico", 10, true);
-            //internalReport.Dictionary.RegisterData(notas, "NotaServico", true);
-            internalReport.Dictionary.RegisterData(notas, "NotaServico", true);
-            //internalReport.Prepare();
-            internalReport.Save(pathfinal);
+            internalReport.RegisterData(notas, "NotaServico");
+            internalReport.Prepare();
 
             switch (Configuracoes.Filtro)
             {
