@@ -353,17 +353,17 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
         }
 
         // Se a nota fiscal cancelada existir na coleção de Notas Fiscais, atualiza seu status:
-        var nota = notas.FirstOrDefault(x => x.IdentificacaoNFSe.Numero.Trim() == retornoWebservice.NumeroNFSe);
-        if (nota == null) return;
+        //var nota = notas.FirstOrDefault(x => x.IdentificacaoNFSe.Numero.Trim() == retornoWebservice.NumeroNFSe);
+        //if (retornoWebservice.XmlRetorno == null) return;
 
         retornoWebservice.Data = confirmacaoDataHora.ElementAnyNs("DataHora")?.GetValue<DateTime>() ?? DateTime.MinValue;
         retornoWebservice.Sucesso = retornoWebservice.Data != DateTime.MinValue;
 
-        nota.Situacao = SituacaoNFSeRps.Cancelado;
-        nota.Cancelamento.Pedido.CodigoCancelamento = retornoWebservice.CodigoCancelamento;
-        nota.Cancelamento.DataHora = retornoWebservice.Data;
-        nota.Cancelamento.MotivoCancelamento = retornoWebservice.Motivo;
-        nota.Cancelamento.Signature = confirmacaoDataHora.ElementAnyNs("Pedido").ElementAnyNs("Signature") != null ? DFeSignature.Load(confirmacaoDataHora.ElementAnyNs("Pedido").ElementAnyNs("Signature")?.ToString()) : null;
+        //nota.Situacao = SituacaoNFSeRps.Cancelado;
+        //nota.Cancelamento.Pedido.CodigoCancelamento = retornoWebservice.CodigoCancelamento;
+        //nota.Cancelamento.DataHora = retornoWebservice.Data;
+        //nota.Cancelamento.MotivoCancelamento = retornoWebservice.Motivo;
+        //nota.Cancelamento.Signature = confirmacaoDataHora.ElementAnyNs("Pedido").ElementAnyNs("Signature") != null ? DFeSignature.Load(confirmacaoDataHora.ElementAnyNs("Pedido").ElementAnyNs("Signature")?.ToString()) : null;
     }
 
 
