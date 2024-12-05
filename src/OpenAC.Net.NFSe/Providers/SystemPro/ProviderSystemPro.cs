@@ -293,9 +293,22 @@ internal sealed class ProviderSystemPro : ProviderABRASF201
         XElement rootSub = null;
         XElement rootRps;
 
+
+        XElement? rootLista = null;
+        XElement? rootGrupo = null;
+
         var rootResposta = xml.ElementAnyNs("EnviarLoteRpsSincronoResposta");
-        var rootLista = rootResposta.ElementAnyNs("ListaNfse");
-        var rootGrupo = rootLista.ElementAnyNs("CompNfse");
+
+        if (rootResposta != null) // Imprimir
+        {
+            rootLista = rootResposta.ElementAnyNs("ListaNfse");
+            rootGrupo = rootLista.ElementAnyNs("CompNfse");
+        }
+        else // Consulta
+        {
+            rootGrupo = xml.ElementAnyNs("CompNfse");
+        }
+
         if (rootGrupo != null)
         {
             rootNFSe = rootGrupo.ElementAnyNs("Nfse")?.ElementAnyNs("InfNfse");
