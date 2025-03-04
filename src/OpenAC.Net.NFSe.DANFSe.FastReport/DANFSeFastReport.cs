@@ -39,6 +39,8 @@ using OpenAC.Net.NFSe.Configuracao;
 using OpenAC.Net.NFSe.Nota;
 using System.Collections.Generic;
 using System.Data;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Diagnostics;
 
 namespace OpenAC.Net.NFSe.DANFSe.FastReport;
 
@@ -173,7 +175,10 @@ public sealed class DANFSeFastReport : OpenDANFSeBase<DANFSeFastOptions, FiltroD
             string pathfinal = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Relatorios", "DANFSe.frx");
             PrepararImpressao(pathfinal);
             internalReport.RegisterData(notas, "NotaServico");
+            //internalReport.RegisterData(notas[0].Servico.ItemsServico.ToBindingList(), "ItemsServico");
             internalReport.Prepare();
+            //internalReport.Load("C:\\Users\\Emanoel\\Desktop\\DANFSe.frx");
+            //internalReport.Save("C:\\Users\\Emanoel\\Desktop\\DANFSe.frx");
 
             switch (Configuracoes.Filtro)
             {
